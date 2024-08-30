@@ -19,7 +19,7 @@ from pptx import Presentation
 from PIL import Image
 import base64
 import html
-import openai
+import importlib
 
 EXTENSION_TO_TYPE = {
     'pdf': 'pdf',
@@ -77,8 +77,9 @@ class sum4all(Plugin):
             self.open_ai_api_key = self.keys.get("open_ai_api_key", "")
             self.model = self.keys.get("model", "gpt-3.5-turbo")
             self.open_ai_api_base = self.keys.get("open_ai_api_base", "https://api.openai.com/v1")
-            openai.api_key = self.open_ai_api_key
-            openai.base_url = self.open_ai_api_base
+            self.openai = importlib.import_module('openai')
+            self.openai.api_key = self.open_ai_api_key
+            self.openai.base_url = self.open_ai_api_base
             self.xunfei_app_id = self.keys.get("xunfei_app_id", "")
             self.xunfei_api_key = self.keys.get("xunfei_api_key", "")
             self.xunfei_api_secret = self.keys.get("xunfei_api_secret", "")
@@ -358,7 +359,7 @@ class sum4all(Plugin):
         try:
             logger.info(f'Sending request to LLM... {content=}')
 
-            chat_completion = openai.ChatCompletion.create(
+            chat_completion = self.openai.ChatCompletion.create(
                 messages=[
                     {
                         "role": "user",
