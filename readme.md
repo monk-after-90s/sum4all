@@ -1,23 +1,31 @@
 ## 用户交流
+
 [telegram频道](https://sum4all.site/telegram)\
 [X](https://sum4all.site/twitter)
 
 ## 友情赞助
+
 <a href="https://www.buymeacoffee.com/fatwang2" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
 ## 简介
+
 本项目为大模型内容总结服务，有微信插件、[telegram机器人](https://t.me/sum4all_bot)
 、[iOS快捷指令](https://sum4all.site/shortcuts)
-三个版本，其中微信插件需要自行部署，需配合[chatgpt-on-wechat](https://github.com/zhayujie/chatgpt-on-wechat)项目，其他插件可点击链接自行体验
+三个版本，其中微信插件需要自行部署，需配合[chatgpt-on-wechat](https://github.com/zhayujie/chatgpt-on-wechat)
+项目，其他插件可点击链接自行体验
 
 ## iOS快捷指令
+
 <img src="picture/shortcuts.PNG" width="200px" alt="文件" />
 
 ## telegram机器人
+
 <img src="picture/telegram_bot.PNG" width="200px" alt="文件" />
 
 ## 微信插件
+
 ### 更新日志
+
 - V0.7.8，20240602，切换service为openai和sum4all时的图片识别模型为gpt-4o
 - V0.7.7，20240501，修复url总结开关失效的bug
 - V0.7.6，20240420，修复微信链接规则编号带来的解析失败问题
@@ -30,9 +38,8 @@
 
 [更多日志](https://github.com/fatwang2/sum4all/releases)
 
-
-
 ### 功能特点
+
 - 支持联网搜索
 - 支持多轮追问
 - 支持文章链接总结，且支持发送到在线笔记
@@ -42,6 +49,7 @@
 - 支持多种内容总结服务，可自由组合
 - 支持自定义prompt
 - 支持自定义搜索、追问提示词
+
 <table>
   <tr>
     <td><img src="picture/追问.png" width="400px" alt="文件" /></td>
@@ -59,47 +67,52 @@
     <td><img src="picture/抖音.png" width="400px" alt="抖音" /></td>    
     <td><img src="picture/image.png" width="400px" alt="小红书" /></td> 
   </tr>
-  
+
 </table>
 
 ### 安装
+
 使用管理员口令在线安装，管理员认证方法见：[管理员认证](https://github.com/zhayujie/chatgpt-on-wechat/tree/master/plugins/godcmd)
+
 ```
 #installp https://github.com/fatwang2/sum4all.git
 ```
+
 安装成功后，根据提示使用`#scanp` 命令来扫描新插件
 
 ![Alt text](picture/image-4.png)
 
 ### 申请服务（自行选择，各有优劣）
 
-| 服务 | 支持功能 | 特点 | 注册地址 | 图片介绍 |
-|------|----------|------|----------|-----------|
-| OpenAI | 搜索、文件、图片、绝大部分网页文章 | 无需额外申请服务，舍得花钱的话，效果最可控 | [OpenAI](https://platform.openai.com/account/api-keys) \| [LinkAI代理](https://sum4all.site/linkai) | ![OpenAI](picture/openai.png) |
-| sum4all | 搜索、文件、图片、绝大部分网页文章 | 注册免费送1万token，邀请好友注册再各得5k，是openai官方价的五折| [sum4all](https://sum4all.site/key) | ![Sum4all](picture/sum4all.png) |
-| search1api | Google、Bing、Duckduckgo搜索 | 搜索聚合服务，无需注册，$0.99/1000次每个月| [search1api](https://search2ai.online/api)| ![search1api](picture/search1api.png) |
-| Gemini | 搜索、文件、图片、绝大部分网页文章 | Google最新大模型，免费 | [gemini](https://sum4all.site/google) | ![Gemini](picture/gemini.png) |
-| Perplexity | 搜索 | 国外的搜索总结服务，速度快，价格贵，自带大模型，需自行注册和付费 | [Perplexity](https://sum4all.site/perplexity) | ![Perplexity](picture/p.png) | ![Alt text](picture/WX20231201-004639@2x.png) |
-| 讯飞 | 图片 | 讯飞星火大模型的图片理解功能，免费200万token，随便用 | [xunfei](https://sum4all.site/xunfei) | ![Perplexity](picture/讯飞.png) |
-| flomo | 记笔记 | 邀请码:OTY0，可免费得14天pro会员 | [flomo](https://sum4all.site/flomo) | ![flomo](picture/flomo-api.jpg) |
-| BibiGPT | 文章、视频、音频 | 注册免费享有60min时长 | [BibiGPT](https://sum4all.site/bibigpt) | ![BibiGPT](picture/image-3.png) |
-| OpenSum | 微信、头条、即刻等平台网页文章 | 19元30万字 | [OpenSum](https://sum4all.site/opensum) | ![OpenSum](picture/opensum.png) |
-
+| 服务         | 支持功能                     | 特点                                     | 注册地址                                                                                              | 图片介绍                                  |
+|------------|--------------------------|----------------------------------------|---------------------------------------------------------------------------------------------------|---------------------------------------|
+| OpenAI     | 搜索、文件、图片、绝大部分网页文章        | 无需额外申请服务，舍得花钱的话，效果最可控                  | [OpenAI](https://platform.openai.com/account/api-keys) \| [LinkAI代理](https://sum4all.site/linkai) | ![OpenAI](picture/openai.png)         |
+| sum4all    | 搜索、文件、图片、绝大部分网页文章        | 注册免费送1万token，邀请好友注册再各得5k，是openai官方价的五折 | [sum4all](https://sum4all.site/key)                                                               | ![Sum4all](picture/sum4all.png)       |
+| search1api | Google、Bing、Duckduckgo搜索 | 搜索聚合服务，无需注册，$0.99/1000次每个月             | [search1api](https://search2ai.online/api)                                                        | ![search1api](picture/search1api.png) |
+| Gemini     | 搜索、文件、图片、绝大部分网页文章        | Google最新大模型，免费                         | [gemini](https://sum4all.site/google)                                                             | ![Gemini](picture/gemini.png)         |
+| Perplexity | 搜索                       | 国外的搜索总结服务，速度快，价格贵，自带大模型，需自行注册和付费       | [Perplexity](https://sum4all.site/perplexity)                                                     | ![Perplexity](picture/p.png)          | ![Alt text](picture/WX20231201-004639@2x.png) |
+| 讯飞         | 图片                       | 讯飞星火大模型的图片理解功能，免费200万token，随便用         | [xunfei](https://sum4all.site/xunfei)                                                             | ![Perplexity](picture/讯飞.png)         |
+| flomo      | 记笔记                      | 邀请码:OTY0，可免费得14天pro会员                  | [flomo](https://sum4all.site/flomo)                                                               | ![flomo](picture/flomo-api.jpg)       |
+| BibiGPT    | 文章、视频、音频                 | 注册免费享有60min时长                          | [BibiGPT](https://sum4all.site/bibigpt)                                                           | ![BibiGPT](picture/image-3.png)       |
+| OpenSum    | 微信、头条、即刻等平台网页文章          | 19元30万字                                | [OpenSum](https://sum4all.site/opensum)                                                           | ![OpenSum](picture/opensum.png)       |
 
 ### 配置
+
 - 服务器部署：复制插件目录的`config.json.template`文件,重命名为`config.json`，配置参数即可
-- docker部署：参考项目docker部署的插件使用，`config.json`内增加sum4all插件的配置参数，操作见 [docker插件配置](https://github.com/zhayujie/chatgpt-on-wechat#3-%E6%8F%92%E4%BB%B6%E4%BD%BF%E7%94%A8)
+- docker部署：参考项目docker部署的插件使用，`config.json`
+  内增加sum4all插件的配置参数，操作见 [docker插件配置](https://github.com/zhayujie/chatgpt-on-wechat#3-%E6%8F%92%E4%BB%B6%E4%BD%BF%E7%94%A8)
 
 配置文件含义如下：
+
 ```
 {
   "url_sum": {
     "enabled": true, #url总结服务开关
-    "service": "sum4all", #url总结服务，目前支持openai、sum4all、gemini、bibigpt、opensum
+    "service": "openai", #url总结服务，目前仅支持openai
     "group": true, #url总结群聊开关
     "qa_enabled":true, #url总结追问开关
     "qa_prefix":"问", #url总结追问前缀词
-    "prompt": "" #url总结prompt
+    "prompt": "" #url总结prompt，目前不支持自定义
   },
   "search_sum": {
     "enabled": false, #搜索总结服务开关
@@ -146,7 +159,9 @@
   }
 }
 ```
+
 bibigpt输出语言支持列表：
+
 ```
   English: 'en-US',
   中文: 'zh-CN',
@@ -163,6 +178,7 @@ bibigpt输出语言支持列表：
 ```
 
 ### 后续计划
+
 - 支持新闻搜索
 - 支持记录到notion
 - 支持当日总结
