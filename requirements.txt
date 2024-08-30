@@ -5,3 +5,4 @@ openpyxl
 beautifulsoup4
 python-pptx
 Pillow
+openai==1.43.0

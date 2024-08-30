@@ -19,6 +19,7 @@ from pptx import Presentation
 from PIL import Image
 import base64
 import html
+from openai import OpenAI
 
 EXTENSION_TO_TYPE = {
     'pdf': 'pdf',
@@ -74,6 +75,7 @@ class sum4all(Plugin):
             self.opensum_key = self.keys.get("opensum_key", "")
             self.open_ai_api_key = self.keys.get("open_ai_api_key", "")
             self.model = self.keys.get("model", "gpt-3.5-turbo")
+            self.openai_client: None | OpenAI = None
             self.open_ai_api_base = self.keys.get("open_ai_api_base", "https://api.openai.com/v1")
             self.xunfei_app_id = self.keys.get("xunfei_app_id", "")
             self.xunfei_api_key = self.keys.get("xunfei_api_key", "")
@@ -339,58 +341,27 @@ class sum4all(Plugin):
             api_key = self.open_ai_api_key
             api_base = self.open_ai_api_base
             model = self.model
-        elif self.url_sum_service == "sum4all":
-            api_key = self.sum4all_key
-            api_base = "https://pro.sum4all.site/v1"
-            model = "sum4all"
-        elif self.url_sum_service == "gemini":
-            api_key = self.gemini_key
-            model = "gemini"
-            api_base = "https://gemini.sum4all.site/v1/models/gemini-pro:generateContent?key="
+            self.openai_client = self.openai_client or OpenAI(api_key=api_key, base_url=api_base)
         else:
-            logger.error(f"未知的sum_service配置: {self.url_sum_service}")
+            logger.error(f"未知的sum_service配置: {self.url_sum_service} 目前url_sum只支持openai service")
             return
 
         msg: ChatMessage = e_context["context"]["msg"]
         user_id = msg.from_user_id
-        user_params = self.params_cache.get(user_id, {})
         isgroup = e_context["context"].get("isgroup", False)
-        prompt = user_params.get('prompt', self.url_sum_prompt)
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {api_key}'
-        }
-        payload = json.dumps({
-            "link": content,
-            "prompt": prompt,
-            "model": model,
-            "base": api_base
-        })
-        additional_content = ""  # 在 try 块之前初始化 additional_content
-
         try:
             logger.info('Sending request to LLM...')
-            api_url = "https://ai.sum4all.site"
-            response = requests.post(api_url, headers=headers, data=payload)
-            response.raise_for_status()
+            chat_completion = self.openai_client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "user",
+                        "content": content,
+                    }
+                ],
+                model=model
+            )
             logger.info('Received response from LLM.')
-            response_data = response.json()  # 解析响应的 JSON 数据
-            if response_data.get("success"):
-                content = response_data["content"].replace("\\n", "\n")  # 替换 \\n 为 \n
-                self.params_cache[user_id]['content'] = content
-
-                # 新增加的部分，用于解析 meta 数据
-                meta = response_data.get("meta", {})  # 如果没有 meta 数据，则默认为空字典
-                title = meta.get("og:title", "")  # 获取 og:title，如果没有则默认为空字符串
-                self.params_cache[user_id]['title'] = title
-                # 只有当 title 非空时，才加入到回复中
-                if title:
-                    additional_content += f"{title}\n\n"
-                reply_content = additional_content + content  # 将内容加入回复
-
-            else:
-                reply_content = "Content not found or error in response"
-
+            self.params_cache[user_id]['content'] = reply_content = chat_completion.choices[0].message.content
         except requests.exceptions.RequestException as e:
             # 处理可能出现的错误
             logger.error(f"Error calling new combined api: {e}")
