@@ -20,8 +20,6 @@ from PIL import Image
 import base64
 import html
 
-
-
 EXTENSION_TO_TYPE = {
     'pdf': 'pdf',
     'doc': 'docx', 'docx': 'docx',
@@ -33,6 +31,7 @@ EXTENSION_TO_TYPE = {
     'ppt': 'ppt', 'pptx': 'ppt'
 }
 
+
 @plugins.register(
     name="sum4all",
     desire_priority=2,
@@ -40,7 +39,6 @@ EXTENSION_TO_TYPE = {
     version="0.7.8",
     author="fatwang2",
 )
-
 class sum4all(Plugin):
     def __init__(self):
         super().__init__()
@@ -60,7 +58,6 @@ class sum4all(Plugin):
             self.handlers[Event.ON_HANDLE_CONTEXT] = self.on_handle_context
             self.params_cache = ExpiredDict(300)
 
-            
             # 从配置中提取所需的设置
             self.keys = self.config.get("keys", {})
             self.url_sum = self.config.get("url_sum", {})
@@ -121,9 +118,10 @@ class sum4all(Plugin):
         except Exception as e:
             # 初始化失败日志
             logger.warn(f"sum4all init failed: {e}")
+
     def on_handle_context(self, e_context: EventContext):
         context = e_context["context"]
-        if context.type not in [ContextType.TEXT, ContextType.SHARING,ContextType.FILE,ContextType.IMAGE]:
+        if context.type not in [ContextType.TEXT, ContextType.SHARING, ContextType.FILE, ContextType.IMAGE]:
             return
         msg: ChatMessage = e_context["context"]["msg"]
         user_id = msg.from_user_id
@@ -131,9 +129,11 @@ class sum4all(Plugin):
         isgroup = e_context["context"].get("isgroup", False)
 
         url_match = re.match('https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+', content)
-        unsupported_urls = re.search(r'.*finder\.video\.qq\.com.*|.*support\.weixin\.qq\.com/update.*|.*support\.weixin\.qq\.com/security.*|.*mp\.weixin\.qq\.com/mp/waerrpage.*', content)
+        unsupported_urls = re.search(
+            r'.*finder\.video\.qq\.com.*|.*support\.weixin\.qq\.com/update.*|.*support\.weixin\.qq\.com/security.*|.*mp\.weixin\.qq\.com/mp/waerrpage.*',
+            content)
 
-            # 检查输入是否以"搜索前缀词" 开头
+        # 检查输入是否以"搜索前缀词" 开头
         if content.startswith(self.search_sum_search_prefix) and self.search_sum_enabled:
             # 如果消息来自一个群聊，并且你不希望在群聊中启用搜索功能，直接返回
             if isgroup and not self.search_sum_group:
@@ -141,15 +141,17 @@ class sum4all(Plugin):
             # Call new function to handle search operation
             self.call_service(content, e_context, "search")
             return
-        
-        if user_id in self.params_cache and ('last_file_content' in self.params_cache[user_id] or 'last_image_base64' in self.params_cache[user_id] or 'last_url' in self.params_cache[user_id]):
+
+        if user_id in self.params_cache and (
+                'last_file_content' in self.params_cache[user_id] or 'last_image_base64' in self.params_cache[
+            user_id] or 'last_url' in self.params_cache[user_id]):
             # 如果存在最近一次处理的文件路径，触发文件理解函数
             if 'last_file_content' in self.params_cache[user_id] and content.startswith(self.file_sum_qa_prefix):
                 logger.info('Content starts with the file_sum_qa_prefix.')
                 # 去除关键词和紧随其后的空格
                 new_content = content[len(self.file_sum_qa_prefix):]
                 self.params_cache[user_id]['prompt'] = new_content
-                logger.info('params_cache for user has been successfully updated.')            
+                logger.info('params_cache for user has been successfully updated.')
                 self.handle_file(self.params_cache[user_id]['last_file_content'], e_context)
             # 如果存在最近一次处理的图片路径，触发图片理解函数
             elif 'last_image_base64' in self.params_cache[user_id] and content.startswith(self.image_sum_qa_prefix):
@@ -157,7 +159,7 @@ class sum4all(Plugin):
                 # 去除关键词和紧随其后的空格
                 new_content = content[len(self.image_sum_qa_prefix):]
                 self.params_cache[user_id]['prompt'] = new_content
-                logger.info('params_cache for user has been successfully updated.')            
+                logger.info('params_cache for user has been successfully updated.')
                 self.handle_image(self.params_cache[user_id]['last_image_base64'], e_context)
 
             # 如果存在最近一次处理的URL，触发URL理解函数
@@ -166,13 +168,14 @@ class sum4all(Plugin):
                 # 去除关键词和紧随其后的空格
                 new_content = content[len(self.url_sum_qa_prefix):]
                 self.params_cache[user_id]['prompt'] = new_content
-                logger.info('params_cache for user has been successfully updated.')            
-                self.call_service(self.params_cache[user_id]['last_url'], e_context ,"sum")
-            elif 'last_url' in self.params_cache[user_id] and content.startswith(self.note_prefix) and self.note_enabled and not isgroup:
+                logger.info('params_cache for user has been successfully updated.')
+                self.call_service(self.params_cache[user_id]['last_url'], e_context, "sum")
+            elif 'last_url' in self.params_cache[user_id] and content.startswith(
+                    self.note_prefix) and self.note_enabled and not isgroup:
                 logger.info('Content starts with the note_prefix.')
                 new_content = content[len(self.note_prefix):]
                 self.params_cache[user_id]['note'] = new_content
-                logger.info('params_cache for user has been successfully updated.')  
+                logger.info('params_cache for user has been successfully updated.')
                 self.call_service(self.params_cache[user_id]['last_url'], e_context, "note")
         if context.type == ContextType.FILE:
             if isgroup and not self.file_sum_group:
@@ -183,7 +186,7 @@ class sum4all(Plugin):
             context.get("msg").prepare()
             file_path = context.content
             logger.info(f"on_handle_context: 获取到文件路径 {file_path}")
-            
+
             # 检查是否应该进行文件总结
             if self.file_sum_enabled:
                 # 更新params_cache中的last_file_content
@@ -209,8 +212,7 @@ class sum4all(Plugin):
             context.get("msg").prepare()
             image_path = context.content
             logger.info(f"on_handle_context: 获取到图片路径 {image_path}")
-            
-            
+
             # 检查是否应该进行图片总结
             if self.image_sum_enabled:
                 # 将图片路径转换为Base64编码的字符串
@@ -226,9 +228,9 @@ class sum4all(Plugin):
             # 删除文件
             os.remove(image_path)
             logger.info(f"文件 {image_path} 已删除")
-        elif context.type == ContextType.SHARING and self.url_sum_enabled:  #匹配卡片分享
+        elif context.type == ContextType.SHARING and self.url_sum_enabled:  # 匹配卡片分享
             content = html.unescape(content)
-            if unsupported_urls:  #匹配不支持总结的卡片
+            if unsupported_urls:  # 匹配不支持总结的卡片
                 if isgroup:  ##群聊中忽略
                     return
                 else:  ##私聊回复不支持
@@ -236,9 +238,9 @@ class sum4all(Plugin):
                     reply = Reply(type=ReplyType.TEXT, content="不支持总结小程序和视频号")
                     e_context["reply"] = reply
                     e_context.action = EventAction.BREAK_PASS
-            else:  #匹配支持总结的卡片
-                if isgroup:  #处理群聊总结
-                    if self.url_sum_group:  #group_sharing = True进行总结，False则忽略。
+            else:  # 匹配支持总结的卡片
+                if isgroup:  # 处理群聊总结
+                    if self.url_sum_group:  # group_sharing = True进行总结，False则忽略。
                         logger.info("[sum4all] Summary URL : %s", content)
                         # 更新params_cache中的last_url
                         self.params_cache[user_id] = {}
@@ -248,7 +250,7 @@ class sum4all(Plugin):
                         return
                     else:
                         return
-                else:  #处理私聊总结
+                else:  # 处理私聊总结
                     logger.info("[sum4all] Summary URL : %s", content)
                     # 更新params_cache中的last_url
                     self.params_cache[user_id] = {}
@@ -256,9 +258,9 @@ class sum4all(Plugin):
                     logger.info('Updated last_url in params_cache for user.')
                     self.call_service(content, e_context, "sum")
                     return
-            
-        elif url_match and self.url_sum_enabled: #匹配URL链接
-            if unsupported_urls:  #匹配不支持总结的网址
+
+        elif url_match and self.url_sum_enabled:  # 匹配URL链接
+            if unsupported_urls:  # 匹配不支持总结的网址
                 logger.info("[sum4all] Unsupported URL : %s", content)
                 reply = Reply(type=ReplyType.TEXT, content="不支持总结小程序和视频号")
                 e_context["reply"] = reply
@@ -271,6 +273,7 @@ class sum4all(Plugin):
                 logger.info('Updated last_url in params_cache for user.')
                 self.call_service(content, e_context, "sum")
                 return
+
     def call_service(self, content, e_context, service_type):
         if service_type == "search":
             if self.search_sum_service == "openai" or self.search_sum_service == "sum4all" or self.search_sum_service == "gemini":
@@ -287,7 +290,8 @@ class sum4all(Plugin):
         elif service_type == "note":
             if self.note_service == "flomo":
                 self.handle_note(content, e_context)
-    def handle_note(self,link,e_context):
+
+    def handle_note(self, link, e_context):
         msg: ChatMessage = e_context["context"]["msg"]
         user_id = msg.from_user_id
         title = self.params_cache[user_id].get('title', '')
@@ -306,26 +310,28 @@ class sum4all(Plugin):
         reply = Reply()
         reply.type = ReplyType.TEXT
         if response.status_code == 200 and response.json()['code'] == 0:
-            reply.content = f"已发送到{self.note_service}"        
+            reply.content = f"已发送到{self.note_service}"
         else:
             reply.content = "发送失败，错误码：" + str(response.status_code)
         e_context["reply"] = reply
-        e_context.action = EventAction.BREAK_PASS   
+        e_context.action = EventAction.BREAK_PASS
+
     def short_url(self, long_url):
         url = "https://short.fatwang2.com"
         payload = {
             "url": long_url
-        }        
+        }
         headers = {'Content-Type': "application/json"}
         response = requests.request("POST", url, json=payload, headers=headers)
         if response.status_code == 200:
             res_data = response.json()
             # 直接从返回的 JSON 中获取短链接
-            short_url = res_data.get('shorturl', None)  
-            
+            short_url = res_data.get('shorturl', None)
+
             if short_url:
                 return short_url
         return None
+
     def handle_url(self, content, e_context):
         logger.info('Handling Sum4All request...')
         # 根据sum_service的值选择API密钥和基础URL
@@ -344,7 +350,7 @@ class sum4all(Plugin):
         else:
             logger.error(f"未知的sum_service配置: {self.url_sum_service}")
             return
-        
+
         msg: ChatMessage = e_context["context"]["msg"]
         user_id = msg.from_user_id
         user_params = self.params_cache.get(user_id, {})
@@ -381,7 +387,7 @@ class sum4all(Plugin):
                 if title:
                     additional_content += f"{title}\n\n"
                 reply_content = additional_content + content  # 将内容加入回复
-                
+
             else:
                 reply_content = "Content not found or error in response"
 
@@ -400,7 +406,8 @@ class sum4all(Plugin):
             reply.content = f"{remove_markdown(reply_content)}\n\n💬5min内输入{self.url_sum_qa_prefix}+问题，可继续追问。\n\n📒输入{self.note_prefix}+笔记，可发送当前总结&笔记到{self.note_service}"
         e_context["reply"] = reply
         e_context.action = EventAction.BREAK_PASS
-    def handle_bibigpt(self, content, e_context):    
+
+    def handle_bibigpt(self, content, e_context):
         headers = {
             'Content-Type': 'application/json'
         }
@@ -412,23 +419,24 @@ class sum4all(Plugin):
             }
         }
 
-        payload = json.dumps(payload_params)           
+        payload = json.dumps(payload_params)
         try:
             api_url = f"https://bibigpt.co/api/open/{self.bibigpt_key}"
-            response = requests.request("POST",api_url, headers=headers, data=payload)
+            response = requests.request("POST", api_url, headers=headers, data=payload)
             response.raise_for_status()
             data = json.loads(response.text)
             summary_original = data.get('summary', 'Summary not available')
             html_url = data.get('htmlUrl', 'HTML URL not available')
             # 获取短链接
-            short_url = self.short_url(html_url) 
-            
+            short_url = self.short_url(html_url)
+
             # 如果获取短链接失败，使用 html_url
             if short_url is None:
                 short_url = html_url if html_url != 'HTML URL not available' else 'URL not available'
-            
+
             # 移除 "##摘要"、"## 亮点" 和 "-"
-            summary = summary_original.split("详细版（支持对话追问）")[0].replace("## 摘要\n", "📌总结：").replace("## 亮点\n", "").replace("- ", "")
+            summary = summary_original.split("详细版（支持对话追问）")[0].replace("## 摘要\n", "📌总结：").replace(
+                "## 亮点\n", "").replace("- ", "")
         except requests.exceptions.RequestException as e:
             reply = f"An error occurred"
 
@@ -438,6 +446,7 @@ class sum4all(Plugin):
 
         e_context["reply"] = reply
         e_context.action = EventAction.BREAK_PASS
+
     def handle_opensum(self, content, e_context):
         headers = {
             'Content-Type': 'application/json',
@@ -446,7 +455,7 @@ class sum4all(Plugin):
         payload = json.dumps({"link": content})
         try:
             api_url = "https://read.thinkwx.com/api/v1/article/summary"
-            response = requests.request("POST",api_url, headers=headers, data=payload)
+            response = requests.request("POST", api_url, headers=headers, data=payload)
             response.raise_for_status()
             data = json.loads(response.text)
             summary_data = data.get('data', {})  # 获取data字段                
@@ -454,23 +463,24 @@ class sum4all(Plugin):
             # 使用正则表达式提取URL
             url_pattern = r'https:\/\/[^\s]+'
             match = re.search(url_pattern, summary_original)
-            html_url = match.group(0) if match else 'HTML URL not available'            
+            html_url = match.group(0) if match else 'HTML URL not available'
             # 获取短链接
             short_url = self.short_url(html_url) if match else html_url
             # 用于移除摘要中的URL及其后的所有内容
             url_pattern_remove = r'https:\/\/[^\s]+[\s\S]*'
-            summary = re.sub(url_pattern_remove, '', summary_original).strip()        
+            summary = re.sub(url_pattern_remove, '', summary_original).strip()
 
         except requests.exceptions.RequestException as e:
             summary = f"An error occurred"
             short_url = 'URL not available'
-        
+
         reply = Reply()
         reply.type = ReplyType.TEXT
         reply.content = f"{summary}\n\n详细链接：{short_url}"
 
         e_context["reply"] = reply
-        e_context.action = EventAction.BREAK_PASS    
+        e_context.action = EventAction.BREAK_PASS
+
     def handle_search(self, content, e_context):
         # 根据sum_service的值选择API密钥和基础URL
         if self.search_sum_service == "openai":
@@ -500,7 +510,7 @@ class sum4all(Plugin):
             "model": model,
             "base": api_base,
             "search1api_key": self.search1api_key,
-            "search_service": self.search_service  
+            "search_service": self.search_service
         })
         try:
             api_url = "https://ai.sum4all.site"
@@ -517,13 +527,13 @@ class sum4all(Plugin):
                 og_url = meta.get("og:url", "")  # 获取 og:url，如果没有则默认为空字符串
                 # 打印 title 和 og_url 以调试
                 print("Title:", title)
-                print("Original URL:", og_url)                
+                print("Original URL:", og_url)
                 # 只有当 title 和 url 非空时，才加入到回复中
                 if title:
                     reply_content += f"\n\n参考文章：{title}"
                 if og_url:
                     short_url = self.short_url(og_url)  # 获取短链接
-                    reply_content += f"\n\n参考链接：{short_url}"                
+                    reply_content += f"\n\n参考链接：{short_url}"
 
             else:
                 content = "Content not found or error in response"
@@ -535,9 +545,10 @@ class sum4all(Plugin):
 
         reply = Reply()
         reply.type = ReplyType.TEXT
-        reply.content = f"{remove_markdown(reply_content)}"            
+        reply.content = f"{remove_markdown(reply_content)}"
         e_context["reply"] = reply
         e_context.action = EventAction.BREAK_PASS
+
     def handle_perplexity(self, content, e_context):
 
         headers = {
@@ -549,7 +560,7 @@ class sum4all(Plugin):
             "messages": [
                 {"role": "system", "content": self.search_sum_prompt},
                 {"role": "user", "content": content}
-        ]
+            ]
         }
         try:
             api_url = "https://api.perplexity.ai/chat/completions"
@@ -572,9 +583,10 @@ class sum4all(Plugin):
             logger.error(f"Error calling perplexity: {e}")
         reply = Reply()
         reply.type = ReplyType.TEXT
-        reply.content = f"{remove_markdown(content)}"            
+        reply.content = f"{remove_markdown(content)}"
         e_context["reply"] = reply
         e_context.action = EventAction.BREAK_PASS
+
     def get_help_text(self, verbose=False, **kwargs):
         help_text = "Help you summarize all things\n"
         if not verbose:
@@ -582,6 +594,7 @@ class sum4all(Plugin):
         help_text += "1.Share me the link and I will summarize it for you\n"
         help_text += f"2.{self.search_sum_search_prefix}+query,I will search online for you\n"
         return help_text
+
     def handle_file(self, content, e_context):
         logger.info("handle_file: 向LLM发送内容总结请求")
         # 根据sum_service的值选择API密钥和基础URL
@@ -610,14 +623,14 @@ class sum4all(Plugin):
                 'x-goog-api-key': api_key
             }
             data = {
-            "contents": [
-                {"role": "user", "parts": [{"text": prompt}]},
-                {"role": "model", "parts": [{"text": "okay"}]},
-                {"role": "user", "parts": [{"text": content}]}
-            ],
-            "generationConfig": {
-                "maxOutputTokens": 800
-            }
+                "contents": [
+                    {"role": "user", "parts": [{"text": prompt}]},
+                    {"role": "model", "parts": [{"text": "okay"}]},
+                    {"role": "user", "parts": [{"text": content}]}
+                ],
+                "generationConfig": {
+                    "maxOutputTokens": 800
+                }
             }
             api_url = api_base
         else:
@@ -637,7 +650,7 @@ class sum4all(Plugin):
             response = requests.post(api_url, headers=headers, data=json.dumps(data))
             response.raise_for_status()
             response_data = response.json()
-            
+
             # 解析 JSON 并获取 content
             if model == "gemini":
                 if "candidates" in response_data and len(response_data["candidates"]) > 0:
@@ -655,7 +668,7 @@ class sum4all(Plugin):
                         reply_content = "Content not found in the Gemini API response candidate"
                 else:
                     logger.error("No candidates available in the Gemini API response")
-                    reply_content = "No candidates available in the Gemini API response"        
+                    reply_content = "No candidates available in the Gemini API response"
             else:
                 if "choices" in response_data and len(response_data["choices"]) > 0:
                     first_choice = response_data["choices"][0]
@@ -676,9 +689,10 @@ class sum4all(Plugin):
 
         reply = Reply()
         reply.type = ReplyType.TEXT
-        reply.content = f"{remove_markdown(reply_content)}\n\n💬5min内输入{self.file_sum_qa_prefix}+问题，可继续追问" 
+        reply.content = f"{remove_markdown(reply_content)}\n\n💬5min内输入{self.file_sum_qa_prefix}+问题，可继续追问"
         e_context["reply"] = reply
         e_context.action = EventAction.BREAK_PASS
+
     def read_pdf(self, file_path):
         logger.info(f"开始读取PDF文件：{file_path}")
         doc = fitz.open(file_path)
@@ -686,13 +700,16 @@ class sum4all(Plugin):
         logger.info(f"PDF文件读取完成：{file_path}")
 
         return content
+
     def read_word(self, file_path):
         doc = Document(file_path)
         return ' '.join([p.text for p in doc.paragraphs])
+
     def read_markdown(self, file_path):
         with open(file_path, 'r', encoding='utf-8') as file:
             md_content = file.read()
             return markdown.markdown(md_content)
+
     def read_excel(self, file_path):
         workbook = load_workbook(file_path)
         content = ''
@@ -701,6 +718,7 @@ class sum4all(Plugin):
                 content += ' '.join([str(cell.value) for cell in row])
                 content += '\n'
         return content
+
     def read_txt(self, file_path):
         logger.debug(f"开始读取TXT文件: {file_path}")
         try:
@@ -713,6 +731,7 @@ class sum4all(Plugin):
         except Exception as e:
             logger.error(f"读取TXT文件时出错: {file_path}，错误信息: {str(e)}")
             return ""
+
     def read_csv(self, file_path):
         content = ''
         with open(file_path, 'r', encoding='utf-8') as csvfile:
@@ -720,10 +739,12 @@ class sum4all(Plugin):
             for row in reader:
                 content += ' '.join(row) + '\n'
         return content
+
     def read_html(self, file_path):
         with open(file_path, 'r', encoding='utf-8') as file:
             soup = BeautifulSoup(file, 'html.parser')
             return soup.get_text()
+
     def read_ppt(self, file_path):
         presentation = Presentation(file_path)
         content = ''
@@ -732,6 +753,7 @@ class sum4all(Plugin):
                 if hasattr(shape, "text"):
                     content += shape.text + '\n'
         return content
+
     def extract_content(self, file_path):
         logger.info(f"extract_content: 提取文件内容，文件路径: {file_path}")
         file_size = os.path.getsize(file_path) // 1000  # 将文件大小转换为KB
@@ -763,12 +785,13 @@ class sum4all(Plugin):
             return None
         logger.info("extract_content: 文件内容提取完成")
         return read_func(file_path)
+
     def encode_image_to_base64(self, image_path):
         # 打开图片
         img = Image.open(image_path)
         # 只有当图片的宽度大于1024像素时，才调整图片大小
         if img.width > 1024:
-            img = img.resize((1024, int(img.height*1024/img.width)))
+            img = img.resize((1024, int(img.height * 1024 / img.width)))
             # 将调整大小后的图片保存回原文件
             img.save(image_path)
 
@@ -776,6 +799,7 @@ class sum4all(Plugin):
         with open(image_path, "rb") as image_file:
             encoded = base64.b64encode(image_file.read()).decode('utf-8')
         return encoded
+
     # Function to handle OpenAI image processing
     def handle_image(self, base64_image, e_context):
         logger.info("handle_image: 解析图像处理API的响应")
@@ -806,7 +830,7 @@ class sum4all(Plugin):
                             {"text": prompt},
                             {
                                 "inline_data": {
-                                    "mime_type":"image/png",
+                                    "mime_type": "image/png",
                                     "data": base64_image
                                 }
                             }
@@ -858,7 +882,8 @@ class sum4all(Plugin):
             response_json = response.json()
 
             if self.image_sum_service == "gemini":
-                reply_content = response_json.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', 'No text found in the response')
+                reply_content = response_json.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get(
+                    'text', 'No text found in the response')
             else:
                 if "choices" in response_json and len(response_json["choices"]) > 0:
                     first_choice = response_json["choices"][0]
@@ -881,7 +906,8 @@ class sum4all(Plugin):
         reply.content = f"{remove_markdown(reply_content)}\n\n💬5min内输入{self.image_sum_qa_prefix}+问题，可继续追问"
         e_context["reply"] = reply
         e_context.action = EventAction.BREAK_PASS
-    
+
+
 def remove_markdown(text):
     # 替换Markdown的粗体标记
     text = text.replace("**", "")
