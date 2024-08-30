@@ -82,7 +82,7 @@ class sum4all(Plugin):
             self.openai = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(self.openai)
             self.openai.api_key = self.open_ai_api_key
-            logger.debug(f"{self.openai.api_key=}")
+            logger.info(f"{self.openai.api_key=}")
             self.openai.base_url = self.open_ai_api_base
 
             self.xunfei_app_id = self.keys.get("xunfei_app_id", "")
@@ -363,7 +363,7 @@ class sum4all(Plugin):
         isgroup = e_context["context"].get("isgroup", False)
         try:
             logger.info(f'Sending request to LLM... {content=}')
-            logger.debug(f"{self.openai.api_key=}")
+            logger.info(f"{self.openai.api_key=}")
             chat_completion = self.openai.ChatCompletion.create(
                 messages=[
                     {
