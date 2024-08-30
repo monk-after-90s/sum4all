@@ -356,18 +356,21 @@ class sum4all(Plugin):
         try:
             logger.info(f'Sending request to LLM... {content=}')
 
-            response = httpx.post(self.open_ai_api_base, json={
-                "stream": False,
-                "model": self.model,
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": content
-                    },
-                ]
-            }, headers={
-                "Authorization": f"Bearer {self.open_ai_api_key}",
-            }, timeout=300)
+            response = httpx.post(self.open_ai_api_base + "/chat/completions",
+                                  json={
+                                      "stream": False,
+                                      "model": self.model,
+                                      "messages": [
+                                          {
+                                              "role": "user",
+                                              "content": content
+                                          },
+                                      ]
+                                  },
+                                  headers={
+                                      "Authorization": f"Bearer {self.open_ai_api_key}",
+                                  },
+                                  timeout=300)
             response.raise_for_status()  # 检查是否为非200的响应码，如果是，则抛出异常
             result = response.json()
 
