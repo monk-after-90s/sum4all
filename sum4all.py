@@ -356,7 +356,7 @@ class sum4all(Plugin):
         user_id = msg.from_user_id
         isgroup = e_context["context"].get("isgroup", False)
         try:
-            logger.info('Sending request to LLM...')
+            logger.info(f'Sending request to LLM... {content=}')
 
             chat_completion = openai.ChatCompletion.create(
                 messages=[
