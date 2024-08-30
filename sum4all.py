@@ -77,9 +77,13 @@ class sum4all(Plugin):
             self.open_ai_api_key = self.keys.get("open_ai_api_key", "")
             self.model = self.keys.get("model", "gpt-3.5-turbo")
             self.open_ai_api_base = self.keys.get("open_ai_api_base", "https://api.openai.com/v1")
-            self.openai = importlib.import_module('openai')
+
+            spec = importlib.util.find_spec('openai')
+            self.openai = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(self.openai)
             self.openai.api_key = self.open_ai_api_key
             self.openai.base_url = self.open_ai_api_base
+
             self.xunfei_app_id = self.keys.get("xunfei_app_id", "")
             self.xunfei_api_key = self.keys.get("xunfei_api_key", "")
             self.xunfei_api_secret = self.keys.get("xunfei_api_secret", "")
