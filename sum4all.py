@@ -19,7 +19,7 @@ from pptx import Presentation
 from PIL import Image
 import base64
 import html
-from openai import OpenAI
+import openai
 
 EXTENSION_TO_TYPE = {
     'pdf': 'pdf',
@@ -75,8 +75,9 @@ class sum4all(Plugin):
             self.opensum_key = self.keys.get("opensum_key", "")
             self.open_ai_api_key = self.keys.get("open_ai_api_key", "")
             self.model = self.keys.get("model", "gpt-3.5-turbo")
-            self.openai_client: None | OpenAI = None
             self.open_ai_api_base = self.keys.get("open_ai_api_base", "https://api.openai.com/v1")
+            openai.api_key = self.open_ai_api_key
+            openai.base_url = self.open_ai_api_base
             self.xunfei_app_id = self.keys.get("xunfei_app_id", "")
             self.xunfei_api_key = self.keys.get("xunfei_api_key", "")
             self.xunfei_api_secret = self.keys.get("xunfei_api_secret", "")
@@ -338,10 +339,7 @@ class sum4all(Plugin):
         logger.info('Handling Sum4All request...')
         # 根据sum_service的值选择API密钥和基础URL
         if self.url_sum_service == "openai":
-            api_key = self.open_ai_api_key
-            api_base = self.open_ai_api_base
             model = self.model
-            self.openai_client = self.openai_client or OpenAI(api_key=api_key, base_url=api_base)
         else:
             logger.error(f"未知的sum_service配置: {self.url_sum_service} 目前url_sum只支持openai service")
             return
@@ -351,7 +349,7 @@ class sum4all(Plugin):
         isgroup = e_context["context"].get("isgroup", False)
         try:
             logger.info('Sending request to LLM...')
-            chat_completion = self.openai_client.chat.completions.create(
+            chat_completion = openai.chat.completions.create(
                 messages=[
                     {
                         "role": "user",
