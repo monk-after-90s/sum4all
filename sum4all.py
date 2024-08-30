@@ -57,6 +57,7 @@ class sum4all(Plugin):
                     raise Exception("config.json not found")
             # 设置事件处理函数
             self.handlers[Event.ON_HANDLE_CONTEXT] = self.on_handle_context
+            self.handlers[Event.ON_DECORATE_REPLY] = self.on_decorate_reply
             self.params_cache = ExpiredDict(300)
 
             # 从配置中提取所需的设置
@@ -121,6 +122,12 @@ class sum4all(Plugin):
         except Exception as e:
             # 初始化失败日志
             logger.warn(f"sum4all init failed: {e}")
+    def on_decorate_reply(self, e_context: EventContext):
+        reply = e_context["reply"]
+        #文本回复且是无意义的图片
+        if reply.type==ReplyType.TEXT and reply.content.startswith("0\n"):
+            # print("无意义的图片")
+            raise Exception("无意义的图片")
 
     def on_handle_context(self, e_context: EventContext):
         context = e_context["context"]
