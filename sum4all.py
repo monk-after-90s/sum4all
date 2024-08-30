@@ -122,10 +122,11 @@ class sum4all(Plugin):
         except Exception as e:
             # 初始化失败日志
             logger.warn(f"sum4all init failed: {e}")
+
     def on_decorate_reply(self, e_context: EventContext):
         reply = e_context["reply"]
-        #文本回复且是无意义的图片
-        if reply.type==ReplyType.TEXT and reply.content.startswith("0\n"):
+        # 文本回复且是无意义的图片
+        if reply.type == ReplyType.TEXT and reply.content.startswith("0\n"):
             # print("无意义的图片")
             raise Exception("无意义的图片")
 
@@ -356,7 +357,8 @@ class sum4all(Plugin):
         isgroup = e_context["context"].get("isgroup", False)
         try:
             logger.info('Sending request to LLM...')
-            chat_completion = openai.chat.completions.create(
+
+            chat_completion = openai.ChatCompletion.create(
                 messages=[
                     {
                         "role": "user",
