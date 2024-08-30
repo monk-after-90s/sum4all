@@ -367,7 +367,7 @@ class sum4all(Plugin):
                 ],
                 model=model
             )
-            logger.info('Received response from LLM.')
+            logger.info(f'Received response from LLM. {chat_completion.choices[0].message.content=}')
             self.params_cache[user_id]['content'] = reply_content = chat_completion.choices[0].message.content
         except requests.exceptions.RequestException as e:
             # 处理可能出现的错误
