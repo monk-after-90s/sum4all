@@ -19,7 +19,7 @@ from pptx import Presentation
 from PIL import Image
 import base64
 import html
-import importlib
+import httpx
 
 EXTENSION_TO_TYPE = {
     'pdf': 'pdf',
@@ -77,14 +77,6 @@ class sum4all(Plugin):
             self.open_ai_api_key = self.keys.get("open_ai_api_key", "")
             self.model = self.keys.get("model", "gpt-3.5-turbo")
             self.open_ai_api_base = self.keys.get("open_ai_api_base", "https://api.openai.com/v1")
-
-            spec = importlib.util.find_spec('openai')
-            self.openai = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(self.openai)
-            self.openai.api_key = self.open_ai_api_key
-            logger.info(f"{self.openai.api_key=}")
-            self.openai.base_url = self.open_ai_api_base
-
             self.xunfei_app_id = self.keys.get("xunfei_app_id", "")
             self.xunfei_api_key = self.keys.get("xunfei_api_key", "")
             self.xunfei_api_secret = self.keys.get("xunfei_api_secret", "")
@@ -363,18 +355,24 @@ class sum4all(Plugin):
         isgroup = e_context["context"].get("isgroup", False)
         try:
             logger.info(f'Sending request to LLM... {content=}')
-            logger.info(f"{self.openai.api_key=}")
-            chat_completion = self.openai.ChatCompletion.create(
-                messages=[
+
+            response = httpx.post(self.open_ai_api_base, json={
+                "stream": False,
+                "model": self.model,
+                "messages": [
                     {
                         "role": "user",
-                        "content": content,
-                    }
-                ],
-                model=model
-            )
-            logger.info(f'Received response from LLM. {chat_completion.choices[0].message.content=}')
-            self.params_cache[user_id]['content'] = reply_content = chat_completion.choices[0].message.content
+                        "content": content
+                    },
+                ]
+            }, headers={
+                "Authorization": f"Bearer {self.open_ai_api_key}",
+            }, timeout=300)
+            response.raise_for_status()  # 检查是否为非200的响应码，如果是，则抛出异常
+            result = response.json()
+
+            logger.info(f"Received response from LLM. {result['choices'][0]['message']['content']=}")
+            self.params_cache[user_id]['content'] = reply_content = result['choices'][0]['message']['content']
         except requests.exceptions.RequestException as e:
             # 处理可能出现的错误
             logger.error(f"Error calling new combined api: {e}")
